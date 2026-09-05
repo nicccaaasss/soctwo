@@ -1285,6 +1285,25 @@ window.addEventListener('scroll', updateActiveNav, {
 window.addEventListener('resize', updateActiveNav);
 
 updateActiveNav();
+
+/* ============================================================
+   HOME ACTIVITY CARD NAVIGATION
+   ============================================================ */
+
+document.querySelectorAll('[data-goto]').forEach(card => {
+  card.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    const target = document.getElementById(card.dataset.goto);
+
+    if (target) {
+      target.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  });
+});
 /* ============================================================
    TIMELINE FILL PROGRESS (scroll-driven)
    ============================================================ */

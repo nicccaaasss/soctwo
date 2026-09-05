@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 /* ============================================================
    TOKENS
@@ -571,6 +572,13 @@ h1,h2,h3{font-weight:600; letter-spacing:-0.01em;}
   display:block;
   background:#000;
 }
+.video-container iframe{
+  width:100%;
+  height:100%;
+  border:none;
+  display:block;
+  background:#000;
+}
 .video-placeholder{
   position:absolute;
   inset:0;
@@ -620,6 +628,100 @@ h1,h2,h3{font-weight:600; letter-spacing:-0.01em;}
 }
 .video-caption .vc-label{font-size:0.95rem; color:var(--white); font-weight:500;}
 .video-caption .vc-sub{font-size:0.85rem; color:var(--gray-dim);}
+
+/* ============================================================
+   ENGAGEMENT PANEL — likes & comments
+   ============================================================ */
+.engagement-panel{
+  margin-top:28px;
+  padding:30px 32px;
+  border-radius:24px;
+}
+@media (max-width:480px){ .engagement-panel{padding:22px 20px;} }
+.engage-row{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding-bottom:22px;
+  margin-bottom:22px;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+}
+.like-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:11px 20px;
+  border-radius:999px;
+  border:1px solid var(--glass-border);
+  background:rgba(255,255,255,0.03);
+  color:var(--white);
+  font-size:0.92rem;
+  font-weight:500;
+  transition:border-color .3s ease, background .3s ease, transform .2s ease;
+}
+.like-btn svg{width:18px; height:18px; transition:fill .3s ease, stroke .3s ease, transform .3s var(--ease);}
+.like-btn:active{transform:scale(0.96);}
+.like-btn.liked{border-color:var(--crimson-bright); background:rgba(184,32,63,0.12);}
+.like-btn.liked svg{fill:var(--crimson-bright); stroke:var(--crimson-bright); transform:scale(1.1);}
+.like-count{font-variant-numeric:tabular-nums; min-width:1ch;}
+.engage-hint{font-size:0.82rem; color:var(--gray-dim);}
+@media (max-width:480px){ .engage-hint{display:none;} }
+
+.comment-form{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-bottom:26px;
+}
+.comment-name, .comment-text{
+  width:100%;
+  padding:13px 16px;
+  border-radius:14px;
+  border:1px solid var(--glass-border);
+  background:rgba(255,255,255,0.03);
+  color:var(--white);
+  font-family:inherit;
+  font-size:0.92rem;
+  resize:vertical;
+  transition:border-color .3s ease, background .3s ease;
+}
+.comment-name::placeholder, .comment-text::placeholder{color:var(--gray-dim);}
+.comment-name:focus, .comment-text:focus{
+  outline:none;
+  border-color:rgba(255,255,255,0.22);
+  background:rgba(255,255,255,0.05);
+}
+.comment-submit{
+  align-self:flex-start;
+  padding:12px 24px;
+  border-radius:999px;
+  background:var(--white);
+  color:var(--black);
+  font-size:0.88rem;
+  font-weight:600;
+  transition:opacity .3s ease, transform .2s ease;
+}
+.comment-submit:hover{opacity:0.88;}
+.comment-submit:active{transform:scale(0.97);}
+.comment-submit:disabled{opacity:0.5; cursor:default;}
+
+.comment-list{display:flex; flex-direction:column; gap:16px;}
+.comment-item{
+  padding-bottom:16px;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.comment-item:last-child{border-bottom:none; padding-bottom:0;}
+.comment-item-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:10px;
+  margin-bottom:6px;
+}
+.comment-item-name{font-size:0.9rem; font-weight:600; color:var(--white);}
+.comment-item-time{font-size:0.74rem; color:var(--gray-dim); white-space:nowrap;}
+.comment-item-text{font-size:0.9rem; color:var(--gray); line-height:1.6; word-break:break-word;}
+.comment-empty, .comment-status{font-size:0.85rem; color:var(--gray-dim); padding:4px 0;}
 
 /* ============================================================
    BANK SECTION SPECIFIC
@@ -940,7 +1042,10 @@ footer{
   <div class="video-section">
     <div class="video-frame-wrap parliament">
       <div class="video-container glow gold" id="videoParliament" data-video-num="2">
-        <video preload="none" playsinline id="vidElParliament"></video>
+        <video preload="none" playsinline id="vidElParliament">
+          Your browser can't play this video inline.
+          <a href="" id="vidElParliamentFallback">Download it here</a>.
+        </video>
         <div class="video-placeholder" id="placeholderParliament">
           <span class="vp-num">VIDEO 2</span>
           <span class="vp-title">Mock Parliament</span>
@@ -954,6 +1059,23 @@ footer{
       <div class="video-caption">
         <span class="vc-label">Mock Parliament</span>
         <span class="vc-sub">Performed by Grade 10 students of Sri Chaitanya Selaiyur — Classes 10 A &amp; 10 B</span>
+      </div>
+
+      <!-- LIKE + COMMENT PANEL — MOCK PARLIAMENT -->
+      <div class="engagement-panel glass" data-video-key="parliament">
+        <div class="engage-row">
+          <button class="like-btn" type="button" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+            <span class="like-count">0</span>
+          </button>
+          <span class="engage-hint">Tap to like this video</span>
+        </div>
+        <form class="comment-form">
+          <input type="text" class="comment-name" placeholder="Your name" maxlength="60" required>
+          <textarea class="comment-text" placeholder="Leave a comment…" maxlength="500" rows="2" required></textarea>
+          <button type="submit" class="comment-submit">Post comment</button>
+        </form>
+        <div class="comment-list"></div>
       </div>
     </div>
   </div>
@@ -1120,7 +1242,10 @@ footer{
   <div class="video-section">
     <div class="video-frame-wrap">
       <div class="video-container glow" id="videoBank" data-video-num="1">
-        <video preload="none" playsinline id="vidElBank"></video>
+        <video preload="none" playsinline id="vidElBank">
+          Your browser can't play this video inline.
+          <a href="" id="vidElBankFallback">Download it here</a>.
+        </video>
         <div class="video-placeholder" id="placeholderBank">
           <span class="vp-num">VIDEO 1</span>
           <span class="vp-title">Mock Bank</span>
@@ -1134,6 +1259,23 @@ footer{
       <div class="video-caption">
         <span class="vc-label">Mock Bank</span>
         <span class="vc-sub">Performed by Grade 10 students of Sri Chaitanya Selaiyur — Classes 10 A &amp; 10 B</span>
+      </div>
+
+      <!-- LIKE + COMMENT PANEL — MOCK BANK -->
+      <div class="engagement-panel glass" data-video-key="bank">
+        <div class="engage-row">
+          <button class="like-btn" type="button" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+            <span class="like-count">0</span>
+          </button>
+          <span class="engage-hint">Tap to like this video</span>
+        </div>
+        <form class="comment-form">
+          <input type="text" class="comment-name" placeholder="Your name" maxlength="60" required>
+          <textarea class="comment-text" placeholder="Leave a comment…" maxlength="500" rows="2" required></textarea>
+          <button type="submit" class="comment-submit">Post comment</button>
+        </form>
+        <div class="comment-list"></div>
       </div>
     </div>
   </div>
@@ -1160,14 +1302,34 @@ footer{
 
 <script>
 /* ============================================================
-   VIDEO SOURCES — replace these with real files
+   VIDEO SOURCES — GitHub Releases direct download links
    ============================================================ */
+// Use the stable /releases/download/ URL, not the expanded
+// objects.githubusercontent.com link — GitHub re-resolves the
+// redirect fresh on every request, so the stable link keeps working.
+// Format: https://github.com/OWNER/REPO/releases/download/TAG/FILENAME.mp4
 const MOCK_BANK_VIDEO = "https://github.com/SCTS-Sarvesh/EpicScholar/releases/download/English/video-1.mp4";
-const MOCK_PARLIAMENT_VIDEO = "https://github.com/SCTS-Sarvesh/EpicScholar/releases/download/English/Mock-Parliament.mp4";
+const MOCK_PARLIAMENT_VIDEO = "";
 // VIDEO 1 -> MOCK BANK   |   VIDEO 2 -> MOCK PARLIAMENT   — never reverse.
 
-document.getElementById('vidElBank').setAttribute('src', MOCK_BANK_VIDEO);
-document.getElementById('vidElParliament').setAttribute('src', MOCK_PARLIAMENT_VIDEO);
+function attachVideoSource(videoEl, url, fallbackLinkEl){
+  const source = document.createElement('source');
+  source.src = url;
+  source.type = 'video/mp4; codecs="avc1.640028, mp4a.40.2"';
+  videoEl.appendChild(source);
+  if(fallbackLinkEl) fallbackLinkEl.href = url;
+  videoEl.load();
+}
+attachVideoSource(
+  document.getElementById('vidElBank'),
+  MOCK_BANK_VIDEO,
+  document.getElementById('vidElBankFallback')
+);
+attachVideoSource(
+  document.getElementById('vidElParliament'),
+  MOCK_PARLIAMENT_VIDEO,
+  document.getElementById('vidElParliamentFallback')
+);
 
 /* ============================================================
    INTRO SEQUENCE
@@ -1255,10 +1417,9 @@ window.addEventListener('scroll', updateTimelineFill, {passive:true});
 updateTimelineFill();
 
 /* ============================================================
-   VIDEO PLAYERS
+   VIDEO PLAYERS — native <video> with a custom play button
    ============================================================ */
 function wireVideo(containerId, videoId, placeholderId, playBtnId){
-  const container = document.getElementById(containerId);
   const video = document.getElementById(videoId);
   const placeholder = document.getElementById(placeholderId);
   const playBtn = document.getElementById(playBtnId);
@@ -1266,16 +1427,16 @@ function wireVideo(containerId, videoId, placeholderId, playBtnId){
   function play(){
     placeholder.style.display = 'none';
     playBtn.classList.add('hidden');
-    video.setAttribute('controls','');
-    video.play().catch(()=>{ /* source not yet available */ });
+    video.setAttribute('controls', '');
+    video.play().catch(()=>{ /* user can still hit the native controls to retry */ });
   }
   playBtn.addEventListener('click', play);
   video.addEventListener('pause', ()=>{ playBtn.classList.remove('hidden'); });
   video.addEventListener('play', ()=>{ playBtn.classList.add('hidden'); });
   video.addEventListener('ended', ()=>{ playBtn.classList.remove('hidden'); });
 }
-wireVideo('videoBank','vidElBank','placeholderBank','playBtnBank');
-wireVideo('videoParliament','vidElParliament','placeholderParliament','playBtnParliament');
+wireVideo('videoBank', 'vidElBank', 'placeholderBank', 'playBtnBank');
+wireVideo('videoParliament', 'vidElParliament', 'placeholderParliament', 'playBtnParliament');
 
 /* ============================================================
    SIMULATED BALANCE COUNTER

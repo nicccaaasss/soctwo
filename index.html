@@ -1172,7 +1172,7 @@ footer{
 // with +faststart, regardless of their original extension (.mov or .mp4).
 // See the ffmpeg command provided separately if you haven't done this yet.
 const MOCK_BANK_VIDEO = "https://github.com/SCTS-Sarvesh/EpicScholar/releases/download/English/video-1.mp4";
-const MOCK_PARLIAMENT_VIDEO = "video-2.mp4";
+const MOCK_PARLIAMENT_VIDEO = "https://github.com/SCTS-Sarvesh/EpicScholar/releases/download/English/Mock-Parliament.mp4";
 // VIDEO 1 -> MOCK BANK   |   VIDEO 2 -> MOCK PARLIAMENT   — never reverse.
 
 function attachVideoSource(videoEl, url, fallbackLinkEl){
@@ -1234,34 +1234,57 @@ document.querySelectorAll('.reveal, .timeline-node, .video-container, .invest-ba
 /* ============================================================
    NAV ACTIVE STATE + SCROLL SPY
    ============================================================ */
+/* ============================================================
+   NAV ACTIVE STATE + SCROLL SPY
+   ============================================================ */
 const navItems = document.querySelectorAll('.nav-item');
-const sections = ['home','parliament','bank'].map(id=>document.getElementById(id));
+const sections = ['home','parliament','bank'].map(id =>
+  document.getElementById(id)
+);
 
-navItems.forEach(item=>{
-  item.addEventListener('click', (e)=>{
+navItems.forEach(item => {
+  item.addEventListener('click', (e) => {
     e.preventDefault();
+
     const target = document.getElementById(item.dataset.target);
-    target.scrollIntoView({behavior:'smooth'});
-  });
-});
 
-document.querySelectorAll('[data-goto]').forEach(card=>{
-  card.addEventListener('click', ()=>{
-    document.getElementById(card.dataset.goto).scrollIntoView({behavior:'smooth'});
-  });
-});
-
-const spyObserver = new IntersectionObserver((entries)=>{
-  entries.forEach(entry=>{
-    if(entry.isIntersecting){
-      navItems.forEach(i=>i.classList.remove('active'));
-      const match = document.querySelector('.nav-item[data-target="'+entry.target.id+'"]');
-      if(match) match.classList.add('active');
+    if (target) {
+      target.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
     }
   });
-}, {threshold:0.4});
-sections.forEach(s=>spyObserver.observe(s));
+});
 
+/* Reliable scroll spy */
+function updateActiveNav() {
+  const scrollPosition = window.scrollY + window.innerHeight * 0.35;
+
+  let currentSection = sections[0];
+
+  sections.forEach(section => {
+    if (scrollPosition >= section.offsetTop) {
+      currentSection = section;
+    }
+  });
+
+  navItems.forEach(item => {
+    item.classList.remove('active');
+
+    if (item.dataset.target === currentSection.id) {
+      item.classList.add('active');
+    }
+  });
+}
+
+window.addEventListener('scroll', updateActiveNav, {
+  passive: true
+});
+
+window.addEventListener('resize', updateActiveNav);
+
+updateActiveNav();
 /* ============================================================
    TIMELINE FILL PROGRESS (scroll-driven)
    ============================================================ */
